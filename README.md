@@ -5,7 +5,7 @@
 [![React](https://img.shields.io/badge/react-18-cyan.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/typescript-5-blue.svg)](https://www.typescriptlang.org/)
 
-**Engram Studio** es una aplicación de escritorio moderna de código abierto para visualizar, consultar y gestionar tu propio cerebro de conocimiento en **Obsidian** y tus proyectos de desarrollo mediante **Model Context Protocol (MCP)** y los modelos de inteligencia artificial más avanzados (Gemini 3.1 Pro, Claude 3.7 Sonnet y GPT-4.5).
+**Engram Studio** es una aplicación de escritorio moderna de código abierto para visualizar, consultar y gestionar tu propio cerebro de conocimiento en **Obsidian** y tus proyectos de desarrollo mediante **Model Context Protocol (MCP)** y los modelos de inteligencia artificial más avanzados (Gemini 3.8 Flash, Claude Fable 5.1 / Opus 5, GPT-5.6 Sol / Terra y DeepSeek-V4).
 
 ---
 
@@ -26,11 +26,32 @@ Engram Studio es una herramienta 100% de cliente local:
    - Señales sinápticas animadas y filtrado por clusters (#patrones, #backend, #infra, #proyectos).
    - Panel lateral de previsualización de notas Markdown y apertura en Obsidian con un solo clic.
 
-2. **Chat Inteligente con Soporte de Modelos de Última Generación**:
-   - **Google Gemini**: Gemini 3.1 Pro Preview y Gemini 2.5.
-   - **Anthropic**: Claude 3.7 Sonnet (con Hybrid Reasoning) y Claude 3.5 Sonnet.
-   - **OpenAI**: GPT-4.5 Preview y o3-mini.
-   - Bucle autónomo de herramientas MCP: El modelo consulta tus notas y responde fundamentado en tu información.
+2. **Chat Inteligente con Soporte de Modelos Frontier (2026)**:
+   - **Google Gemini**:
+     - `gemini-3.8-flash`: Modelo insignia agéntico para codificación y flujos multi-paso.
+     - `gemini-3.8-flash-cyber`: Especializado en ciberseguridad, vulnerabilidades y hardening.
+     - `gemini-3.7-flash` & `gemini-3.6-flash`: Alta velocidad e ingeniería de software.
+     - `gemini-3.5-pro` & `gemini-3.5-flash`: Razonamiento profundo y base eficiente.
+     - `gemini-3.1-pro-preview`: Razonamiento experimental avanzado.
+   - **Anthropic (Claude Series)**:
+     - `claude-fable-5-1`: Flagship de la clase *Mythos* con 1M de tokens de contexto y razonamiento autónomo.
+     - `claude-opus-5`: Modelo diario de máxima potencia para arquitectura y desarrollo complejo.
+     - `claude-sonnet-5`: Modelo balanceado de alta velocidad para entornos de producción.
+     - `claude-opus-4-8` & `claude-opus-4-6`: Especialistas en razonamiento pesado.
+     - `claude-haiku-4-5`: Modelo ultrarrápido de baja latencia.
+   - **OpenAI (GPT-5.6 & GPT-6 Tiers)**:
+     - `gpt-5.6-sol`: Modelo insignia para arquitectura crítica, matemáticas y programación avanzada.
+     - `gpt-5.6-terra`: Modelo balanceado todoterreno para trabajo profesional diario.
+     - `gpt-5.6-luna`: Modelo ultra-rápido y costo-eficiente para tareas masivas.
+     - `gpt-6-astra`: Vista previa de la próxima generación de inteligencia frontier.
+     - `o3-mini`: Razonamiento analítico profundo.
+   - **Modelos Chinos (Arquitectura MoE Trillones de Parámetros)**:
+     - `deepseek-v4-pro`: 1.6 billones de parámetros (MoE), el referente global en código y costo-eficiencia.
+     - `deepseek-r1`: Razonamiento puro por cadena de pensamiento (*Chain of Thought*).
+     - `qwen-3.8-max`: 2.4 billones de parámetros, líder en comprensión técnica multilingüe.
+     - `kimi-k3`: 2.8 billones de parámetros, alta capacidad multimodal y agentes complejos.
+     - `glm-5.3`: Especialista en agentes y llamadas a herramientas (*Tool-Use*) con 1M de contexto.
+   - **Bucle Autónomo de Herramientas MCP**: Todos los modelos consultan automáticamente tu Vault local mediante las herramientas de DevBrain sin intermediarios.
 
 3. **Gestión de Proyectos & Memoria Persistente (Engram)**:
    - Registro de decisiones de arquitectura y aprendizajes entre sesiones de IA.
