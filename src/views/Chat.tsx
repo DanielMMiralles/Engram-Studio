@@ -15,18 +15,12 @@ export const Chat: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
-  const [apiKeys, setApiKeys] = useState<{ anthropicKey?: string; openaiKey?: string; geminiKey?: string }>({});
+  const [savedSettings, setSavedSettings] = useState<any>({});
 
   useEffect(() => {
     if ((window as any).devbrainApi) {
       (window as any).devbrainApi.getSettings().then((s: any) => {
-        if (s) {
-          setApiKeys({
-            anthropicKey: s.anthropicKey,
-            openaiKey: s.openaiKey,
-            geminiKey: s.geminiKey
-          });
-        }
+        if (s) setSavedSettings(s);
       });
     }
   }, []);
@@ -46,14 +40,29 @@ export const Chat: React.FC = () => {
     setInput('');
     setIsTyping(true);
 
+    // Parse composite provider string (e.g. "claude:claude-fable-5-1" or "openai:gpt-5.6-sol")
+    let providerName = selectedProvider;
+    let modelName = '';
+    if (selectedProvider.includes(':')) {
+      const parts = selectedProvider.split(':');
+      providerName = parts[0] as any;
+      modelName = parts[1];
+    }
+
+    let apiKey = '';
+    if (providerName === 'claude') apiKey = savedSettings.anthropicKey;
+    else if (providerName === 'openai') apiKey = savedSettings.openaiKey;
+    else if (providerName === 'gemini') apiKey = savedSettings.geminiKey;
+    else if (providerName === 'deepseek') apiKey = savedSettings.deepseekKey;
+    else if (providerName === 'qwen') apiKey = savedSettings.qwenKey;
+    else if (providerName === 'kimi') apiKey = savedSettings.kimiKey;
+    else if (providerName === 'glm') apiKey = savedSettings.glmKey;
+
     try {
       if ((window as any).devbrainApi) {
-        const apiKey = selectedProvider === 'claude' 
-          ? apiKeys.anthropicKey 
-          : (selectedProvider === 'openai' ? apiKeys.openaiKey : apiKeys.geminiKey);
-
         const res = await (window as any).devbrainApi.chat({
-          provider: selectedProvider,
+          provider: providerName,
+          model: modelName,
           apiKey: apiKey || '',
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content }))
         });
@@ -71,7 +80,7 @@ export const Chat: React.FC = () => {
           const mockMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             role: 'assistant',
-            content: `[Simulación web]: Consulta procesada sobre "${userText}".`,
+            content: `[Simulación]: Consulta procesada con ${providerName} (${modelName || 'default'}).`,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           };
           setMessages(prev => [...prev, mockMsg]);
@@ -81,7 +90,7 @@ export const Chat: React.FC = () => {
       const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Error al conectar con la API: ${err.message}. Asegúrate de haber configurado tu clave API en la pestaña de Configuración.`,
+        content: `Error al conectar con la API (${providerName}): ${err.message}. Verifica tu clave API en Configuración.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, errorMsg]);
@@ -140,7 +149,7 @@ export const Chat: React.FC = () => {
             </div>
             <div className="p-3 rounded-2xl bg-surface border border-border text-xs text-gray-400 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 animate-spin text-accent-purple" />
-              Consultando modelo y ejecutando herramientas MCP...
+              Ejecutando herramientas y consultando modelo frontier...
             </div>
           </div>
         )}

@@ -7,6 +7,10 @@ export const SettingsView: React.FC = () => {
   const [anthropicKey, setAnthropicKey] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
   const [geminiKey, setGeminiKey] = useState('');
+  const [deepseekKey, setDeepseekKey] = useState('');
+  const [qwenKey, setQwenKey] = useState('');
+  const [kimiKey, setKimiKey] = useState('');
+  const [glmKey, setGlmKey] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
@@ -17,6 +21,10 @@ export const SettingsView: React.FC = () => {
           if (s.anthropicKey) setAnthropicKey(s.anthropicKey);
           if (s.openaiKey) setOpenaiKey(s.openaiKey);
           if (s.geminiKey) setGeminiKey(s.geminiKey);
+          if (s.deepseekKey) setDeepseekKey(s.deepseekKey);
+          if (s.qwenKey) setQwenKey(s.qwenKey);
+          if (s.kimiKey) setKimiKey(s.kimiKey);
+          if (s.glmKey) setGlmKey(s.glmKey);
         }
       });
     }
@@ -28,7 +36,11 @@ export const SettingsView: React.FC = () => {
         vaultPath,
         anthropicKey,
         openaiKey,
-        geminiKey
+        geminiKey,
+        deepseekKey,
+        qwenKey,
+        kimiKey,
+        glmKey
       });
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
@@ -72,9 +84,6 @@ export const SettingsView: React.FC = () => {
           <HardDrive className="w-4 h-4 text-primary" />
           Ruta de tu Almacén de Obsidian (Vault Personal)
         </h2>
-        <p className="text-xs text-gray-400">
-          Selecciona la carpeta local donde guardas tus notas de Obsidian para indexar tu grafo de conocimiento.
-        </p>
         <div className="flex items-center gap-2">
           <input
             type="text"
@@ -101,9 +110,10 @@ export const SettingsView: React.FC = () => {
         <p className="text-xs text-gray-400">
           Tus claves se guardan localmente en tu ordenador y nunca se comparten con nadie.
         </p>
+        
         <div className="space-y-3">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Anthropic API Key (Claude 3.7 Sonnet)</label>
+            <label className="block text-xs text-gray-400 mb-1">Anthropic (Claude Fable 5.1 / Opus 5 / Sonnet 5 / Opus 4.8 / 4.6)</label>
             <input
               type="password"
               value={anthropicKey}
@@ -112,8 +122,9 @@ export const SettingsView: React.FC = () => {
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-primary"
             />
           </div>
+
           <div>
-            <label className="block text-xs text-gray-400 mb-1">OpenAI API Key (GPT-4.5 / o3-mini)</label>
+            <label className="block text-xs text-gray-400 mb-1">OpenAI (GPT-5.6 Sol / Terra / Luna / GPT-6 Astra)</label>
             <input
               type="password"
               value={openaiKey}
@@ -122,8 +133,9 @@ export const SettingsView: React.FC = () => {
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-primary"
             />
           </div>
+
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Google Gemini API Key (Gemini 3.1 Pro)</label>
+            <label className="block text-xs text-gray-400 mb-1">Google Gemini (Gemini 3.1 Pro / 3 Flash / 2.5 Pro)</label>
             <input
               type="password"
               value={geminiKey}
@@ -132,23 +144,56 @@ export const SettingsView: React.FC = () => {
               className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-primary"
             />
           </div>
-        </div>
-      </div>
 
-      {/* MCP Mode */}
-      <div className="p-5 rounded-xl bg-surface border border-border space-y-3">
-        <h2 className="font-bold text-sm text-white flex items-center gap-2">
-          <Server className="w-4 h-4 text-accent-cyan" />
-          Modo del Servidor MCP
-        </h2>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg bg-surface-light border border-primary/40 text-xs space-y-1">
-            <div className="font-semibold text-white">Docker Container (Recomendado)</div>
-            <div className="text-gray-400 text-[11px]">devbrain/mcp-server:latest</div>
-          </div>
-          <div className="p-3 rounded-lg bg-surface-light border border-border text-xs space-y-1">
-            <div className="font-semibold text-gray-300">Python Local (Directo)</div>
-            <div className="text-gray-400 text-[11px]">python src/devbrain_mcp.py</div>
+          <div className="pt-2 border-t border-border">
+            <h3 className="text-xs font-semibold text-accent-cyan uppercase tracking-wider mb-2">
+              Modelos Chinos Frontier (MoE Trillion Tiers)
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">DeepSeek (V4-Pro / R1)</label>
+                <input
+                  type="password"
+                  value={deepseekKey}
+                  onChange={(e) => setDeepseekKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Alibaba Qwen (Qwen3.8-Max)</label>
+                <input
+                  type="password"
+                  value={qwenKey}
+                  onChange={(e) => setQwenKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Moonshot Kimi (Kimi K3)</label>
+                <input
+                  type="password"
+                  value={kimiKey}
+                  onChange={(e) => setKimiKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-gray-400 mb-1">Z.ai GLM (GLM-5.3 Agentic)</label>
+                <input
+                  type="password"
+                  value={glmKey}
+                  onChange={(e) => setGlmKey(e.target.value)}
+                  placeholder="API Key..."
+                  className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

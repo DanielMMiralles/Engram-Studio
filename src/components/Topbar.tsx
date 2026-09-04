@@ -13,7 +13,7 @@ export const Topbar: React.FC = () => {
   return (
     <header className="h-14 bg-surface border-b border-border px-4 flex items-center justify-between select-none">
       {/* Search Input */}
-      <div className="relative w-96 max-w-md">
+      <div className="relative w-80 max-w-md">
         <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
         <input
           type="text"
@@ -36,23 +36,44 @@ export const Topbar: React.FC = () => {
           <RefreshCw className={`w-3.5 h-3.5 ${isLoadingGraph ? 'animate-spin text-primary' : ''}`} />
         </button>
 
-        {/* LLM Model Selector with latest bleeding-edge models */}
+        {/* Frontier Model Selector */}
         <div className="flex items-center gap-2 bg-surface-light border border-border rounded-lg px-2.5 py-1 text-xs">
           <Sparkles className="w-3.5 h-3.5 text-accent-purple" />
           <span className="text-gray-400 text-[11px]">Modelo:</span>
           <select
             value={selectedProvider}
             onChange={(e: any) => setSelectedProvider(e.target.value)}
-            className="bg-transparent text-gray-200 font-medium focus:outline-none cursor-pointer text-xs"
+            className="bg-transparent text-gray-200 font-medium focus:outline-none cursor-pointer text-xs max-w-[280px]"
           >
-            <optgroup label="Anthropic">
-              <option value="claude" className="bg-surface text-gray-200">Claude 3.7 Sonnet (Hybrid Reasoning)</option>
+            <optgroup label="Anthropic (Claude Series)">
+              <option value="claude:claude-fable-5-1" className="bg-surface text-gray-200">Claude Fable 5.1 (Mythos Flagship)</option>
+              <option value="claude:claude-opus-5" className="bg-surface text-gray-200">Claude Opus 5 (Agentic Heavy)</option>
+              <option value="claude:claude-sonnet-5" className="bg-surface text-gray-200">Claude Sonnet 5 (Balanced Pro)</option>
+              <option value="claude:claude-opus-4-8" className="bg-surface text-gray-200">Claude Opus 4.8</option>
+              <option value="claude:claude-opus-4-6" className="bg-surface text-gray-200">Claude Opus 4.6</option>
+              <option value="claude:claude-haiku-4-5" className="bg-surface text-gray-200">Claude Haiku 4.5 (Fast)</option>
             </optgroup>
-            <optgroup label="Google">
-              <option value="gemini" className="bg-surface text-gray-200">Gemini 3.1 Pro (Ultra)</option>
+
+            <optgroup label="OpenAI (GPT-5.6 / GPT-6 Tiers)">
+              <option value="openai:gpt-5.6-sol" className="bg-surface text-gray-200">GPT-5.6 Sol (Flagship Reasoning)</option>
+              <option value="openai:gpt-5.6-terra" className="bg-surface text-gray-200">GPT-5.6 Terra (Balanced)</option>
+              <option value="openai:gpt-5.6-luna" className="bg-surface text-gray-200">GPT-5.6 Luna (Ultra Fast)</option>
+              <option value="openai:gpt-6-astra" className="bg-surface text-gray-200">GPT-6 Astra (Frontier Preview)</option>
+              <option value="openai:o3-mini" className="bg-surface text-gray-200">OpenAI o3-mini</option>
             </optgroup>
-            <optgroup label="OpenAI">
-              <option value="openai" className="bg-surface text-gray-200">GPT-4.5 Preview / o3-mini</option>
+
+            <optgroup label="Google (Gemini Frontier)">
+              <option value="gemini:gemini-3.1-pro-preview" className="bg-surface text-gray-200">Gemini 3.1 Pro Preview (Ultra)</option>
+              <option value="gemini:gemini-3-flash" className="bg-surface text-gray-200">Gemini 3 Flash</option>
+              <option value="gemini:gemini-2.5-pro" className="bg-surface text-gray-200">Gemini 2.5 Pro</option>
+            </optgroup>
+
+            <optgroup label="Modelos Chinos (Frontier Trillion MoE)">
+              <option value="deepseek:deepseek-v4-pro" className="bg-surface text-gray-200">DeepSeek-V4-Pro (1.6T MoE)</option>
+              <option value="deepseek:deepseek-r1" className="bg-surface text-gray-200">DeepSeek-R1 (CoT Reasoning)</option>
+              <option value="qwen:qwen-3.8-max" className="bg-surface text-gray-200">Alibaba Qwen3.8-Max (2.4T)</option>
+              <option value="kimi:kimi-k3" className="bg-surface text-gray-200">Moonshot Kimi K3 (2.8T Multimodal)</option>
+              <option value="glm:glm-5.3" className="bg-surface text-gray-200">Z.ai GLM-5.3 (Agent & Tool-Use)</option>
             </optgroup>
           </select>
         </div>
