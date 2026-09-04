@@ -3,6 +3,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('devbrainApi', {
   scanVault: (vaultPath?: string) => ipcRenderer.invoke('vault:scan', vaultPath),
   readNote: (notePath: string) => ipcRenderer.invoke('vault:read-note', notePath),
+  listProjects: () => ipcRenderer.invoke('vault:list-projects'),
+  listMemories: () => ipcRenderer.invoke('vault:list-memories'),
   listTools: () => ipcRenderer.invoke('mcp:list-tools'),
   callTool: (name: string, args: any) => ipcRenderer.invoke('mcp:call-tool', { name, args }),
   chat: (payload: any) => ipcRenderer.invoke('llm:chat', payload),

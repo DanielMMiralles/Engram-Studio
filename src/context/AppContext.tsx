@@ -91,6 +91,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     loadVaultData();
   }, []);
 
+  useEffect(() => {
+    if (selectedNode && selectedNode.path && (window as any).devbrainApi) {
+      (window as any).devbrainApi.readNote(selectedNode.path).then((content: string) => {
+        setSelectedNoteContent(content || '');
+      }).catch(() => {
+        setSelectedNoteContent('');
+      });
+    } else {
+      setSelectedNoteContent('');
+    }
+  }, [selectedNode]);
+
   return (
     <AppContext.Provider value={{
       activeTab, setActiveTab,

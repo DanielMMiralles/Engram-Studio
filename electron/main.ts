@@ -177,6 +177,98 @@ ipcMain.handle('vault:read-note', async (_, notePath: string) => {
   return '# Nota no encontrada\nEl archivo especificado no existe en el disco.';
 });
 
+// IPC: List Projects
+ipcMain.handle('vault:list-projects', async () => {
+  const vaultPath = getSettings().vaultPath;
+  if (!vaultPath || !fs.existsSync(vaultPath)) return [];
+
+  const projsDir = path.join(vaultPath, '02-PROYECTOS');
+  if (!fs.existsSync(projsDir)) return [];
+
+  const projects: any[] = [];
+  try {
+    const entries = fs.readdirSync(projsDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory() && !['specs', '_templates', 'context-bundles'].includes(entry.name)) {
+        const readmePath = path.join(projsDir, entry.name, 'README.md');
+        let desc = 'Proyecto gestionado en tu almacén de Obsidian.';
+        let stack = ['Architecture', 'Docs'];
+        if (fs.existsSync(readmePath)) {
+          try {
+            const content = fs.readFileSync(readmePath, 'utf-8');
+            const lines = content.split('\n');
+            for (const line of lines) {
+              const clean = line.trim();
+              if (clean && !clean.startsWith('#')) {
+                desc = clean.substring(0, 160);
+                break;
+              }
+            }
+            if (content.toLowerCase().includes('python') || content.toLowerCase().includes('django')) stack.push('Python');
+            if (content.toLowerCase().includes('typescript') || content.toLowerCase().includes('react')) stack.push('TypeScript');
+            if (content.toLowerCase().includes('docker')) stack.push('Docker');
+            if (content.toLowerCase().includes('postgres') || content.toLowerCase().includes('sql')) stack.push('PostgreSQL');
+          } catch (e) {}
+        }
+        projects.push({
+          name: entry.name,
+          path: path.join(projsDir, entry.name),
+          stack: Array.from(new Set(stack)),
+          status: 'Activo',
+          description: desc,
+          hasDocker: fs.existsSync(path.join(projsDir, entry.name, 'Dockerfile'))
+        });
+      }
+    }
+  } catch (e) {
+    console.error('[Vault Projects Scan Error]:', e);
+  }
+  return projects;
+});
+
+// IPC: List Decisions & Memories
+ipcMain.handle('vault:list-memories', async () => {
+  const vaultPath = getSettings().vaultPath;
+  if (!vaultPath || !fs.existsSync(vaultPath)) return [];
+
+  const memories: any[] = [];
+  const searchDirs = [
+    path.join(vaultPath, '04-APRENDIZAJES', 'decisiones'),
+    path.join(vaultPath, '04-APRENDIZAJES')
+  ];
+
+  for (const dir of searchDirs) {
+    if (fs.existsSync(dir)) {
+      try {
+        const files = fs.readdirSync(dir);
+        for (const f of files) {
+          if (f.endsWith('.md')) {
+            const fullPath = path.join(dir, f);
+            const content = fs.readFileSync(fullPath, 'utf-8');
+            const lines = content.split('\n');
+            let summary = '';
+            for (const l of lines) {
+              const clean = l.trim();
+              if (clean && !clean.startsWith('#')) {
+                summary = clean.substring(0, 200);
+                break;
+              }
+            }
+            memories.push({
+              title: f.replace(/\.md$/, ''),
+              date: fs.statSync(fullPath).mtime.toISOString().split('T')[0],
+              summary: summary || 'Registro de aprendizaje / decisión técnica en Engram.',
+              path: fullPath
+            });
+          }
+        }
+      } catch (e) {}
+    }
+  }
+
+  return memories;
+});
+
 // IPC: MCP Tools
 ipcMain.handle('mcp:list-tools', async () => {
   await mcpService.start();

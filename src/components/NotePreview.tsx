@@ -53,15 +53,27 @@ export const NotePreview: React.FC = () => {
 
       {/* Content Body */}
       <div className="flex-1 p-4 overflow-y-auto font-sans text-xs text-gray-300 space-y-4 leading-relaxed">
-        <div className="p-3 rounded-lg bg-surface-light border border-border space-y-2">
-          <div className="flex items-center gap-2 text-gray-400 font-medium">
-            <FileText className="w-3.5 h-3.5 text-primary" />
-            <span>{lang === 'es' ? 'Detalles de la Neurona' : 'Neuron Details'}</span>
+        {selectedNoteContent ? (
+          <div className="p-3.5 rounded-lg bg-surface-light border border-border space-y-2">
+            <div className="flex items-center gap-2 text-primary font-medium text-xs border-b border-border/60 pb-2">
+              <FileText className="w-3.5 h-3.5" />
+              <span>Contenido del Markdown</span>
+            </div>
+            <div className="whitespace-pre-wrap font-mono text-[11px] text-gray-200 leading-relaxed max-h-96 overflow-y-auto pr-1 select-text">
+              {selectedNoteContent}
+            </div>
           </div>
-          <p className="text-gray-300">
-            Esta nota técnica forma parte del núcleo de arquitectura de DevBrain. Conectada activamente a través de wikilinks a proyectos y decisiones registradas.
-          </p>
-        </div>
+        ) : (
+          <div className="p-3 rounded-lg bg-surface-light border border-border space-y-2">
+            <div className="flex items-center gap-2 text-gray-400 font-medium">
+              <FileText className="w-3.5 h-3.5 text-primary" />
+              <span>{lang === 'es' ? 'Detalles de la Neurona' : 'Neuron Details'}</span>
+            </div>
+            <p className="text-gray-300">
+              Esta nota técnica forma parte del núcleo de conocimiento de tu almacén. Conectada activamente a través de enlaces bidireccionales y categorizada en el grafo.
+            </p>
+          </div>
+        )}
 
         <div>
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
