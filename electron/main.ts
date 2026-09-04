@@ -1,10 +1,35 @@
 import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron';
 import path from 'path';
 import fs from 'fs';
-import { spawn } from 'child_process';
+import { McpService } from './mcp-service';
+import { LlmService } from './llm-service';
 
 let mainWindow: BrowserWindow | null = null;
+const mcpService = new McpService();
+const llmService = new LlmService(mcpService);
+
 const DEFAULT_VAULT = process.env.VAULT_DIR || 'C:\\Users\\damm1\\OneDrive\\Documentos\\Obsidian Vault';
+
+const SETTINGS_FILE = path.join(app.getPath('userData'), 'engram-settings.json');
+
+function getSettings() {
+  if (fs.existsSync(SETTINGS_FILE)) {
+    try {
+      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'));
+    } catch (e) {}
+  }
+  return {
+    vaultPath: DEFAULT_VAULT,
+    anthropicKey: '',
+    openaiKey: '',
+    geminiKey: '',
+    defaultProvider: 'claude'
+  };
+}
+
+function saveSettings(settings: any) {
+  fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -34,8 +59,16 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createWindow();
+
+  // Automatically spin up MCP server in background
+  try {
+    await mcpService.start();
+    console.log('[Engram Studio] MCP server initialized and ready');
+  } catch (e) {
+    console.warn('[Engram Studio] MCP auto-start deferred:', e);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -43,12 +76,13 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  mcpService.stop();
   if (process.platform !== 'darwin') app.quit();
 });
 
-// IPC Handler: Scan Vault and build Neural Graph
+// IPC: Scan Vault
 ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
-  const vaultPath = customVaultPath || DEFAULT_VAULT;
+  const vaultPath = customVaultPath || getSettings().vaultPath || DEFAULT_VAULT;
   const nodes: any[] = [];
   const links: any[] = [];
   const nodeSet = new Set<string>();
@@ -57,7 +91,6 @@ ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
     return { nodes: [], links: [] };
   }
 
-  // Scan Knowledge Base directory
   const kbDir = path.join(vaultPath, '03-CONOCIMIENTO');
   if (fs.existsSync(kbDir)) {
     const scanDir = (dir: string, category: string) => {
@@ -71,29 +104,21 @@ ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
           const id = stem;
           if (!nodeSet.has(id)) {
             nodeSet.add(id);
-            let color = '#388bfd'; // default blue
+            let color = '#388bfd';
             if (category.includes('patron')) color = '#58a6ff';
             else if (category.includes('backend')) color = '#2ea043';
             else if (category.includes('devops') || category.includes('infra')) color = '#39c5bb';
             else if (category.includes('database')) color = '#a371f7';
 
-            nodes.push({
-              id,
-              label: stem,
-              category,
-              color,
-              val: 3,
-              path: fullPath
-            });
+            nodes.push({ id, label: stem, category, color, val: 3, path: fullPath });
 
-            // Extract wikilinks [[Target]]
             try {
               const content = fs.readFileSync(fullPath, 'utf-8');
               const matches = content.match(/\[\[(.*?)\]\]/g);
               if (matches) {
                 for (const m of matches) {
                   const target = m.replace(/^\[\[/, '').replace(/\]\]$/, '').split('|')[0].trim();
-                  links.push({ source: id, target, color: 'rgba(56, 139, 253, 0.25)' });
+                  links.push({ source: id, target });
                 }
               }
             } catch (e) {}
@@ -104,7 +129,7 @@ ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
     scanDir(kbDir, 'conocimiento');
   }
 
-  // Also add Flagship Projects as prominent Hub Nodes
+  // Add Flagship Projects as Hubs
   const projsDir = path.join(vaultPath, '02-PROYECTOS');
   if (fs.existsSync(projsDir)) {
     const entries = fs.readdirSync(projsDir, { withFileTypes: true });
@@ -114,7 +139,7 @@ ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
           id: entry.name,
           label: entry.name,
           category: 'proyectos',
-          color: '#f0883e', // Orange hub
+          color: '#f0883e',
           val: 8,
           path: path.join(projsDir, entry.name, 'README.md')
         });
@@ -123,13 +148,11 @@ ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
     }
   }
 
-  // Filter links to only connect existing nodes
   const validLinks = links.filter(l => nodeSet.has(l.source) && nodeSet.has(l.target));
-
   return { nodes, links: validLinks };
 });
 
-// IPC Handler: Read Note Markdown
+// IPC: Read Note
 ipcMain.handle('vault:read-note', async (_, notePath: string) => {
   if (fs.existsSync(notePath)) {
     return fs.readFileSync(notePath, 'utf-8');
@@ -137,12 +160,35 @@ ipcMain.handle('vault:read-note', async (_, notePath: string) => {
   return '# Nota no encontrada\nEl archivo especificado no existe en el disco.';
 });
 
-// IPC Handler: Open External (or Obsidian URI)
+// IPC: MCP Tools
+ipcMain.handle('mcp:list-tools', async () => {
+  await mcpService.start();
+  return await mcpService.listTools();
+});
+
+ipcMain.handle('mcp:call-tool', async (_, { name, args }) => {
+  await mcpService.start();
+  return await mcpService.callTool(name, args);
+});
+
+// IPC: LLM Chat with Tool-Calling Loop
+ipcMain.handle('llm:chat', async (_, payload) => {
+  await mcpService.start();
+  return await llmService.executeChat(payload);
+});
+
+// IPC: Settings Persistence
+ipcMain.handle('settings:get', async () => getSettings());
+ipcMain.handle('settings:save', async (_, settings) => {
+  saveSettings(settings);
+  return true;
+});
+
+// IPC: Shell & Dialog
 ipcMain.handle('shell:open', async (_, url: string) => {
   await shell.openExternal(url);
 });
 
-// IPC Handler: Directory Picker Dialog
 ipcMain.handle('dialog:select-directory', async () => {
   if (!mainWindow) return null;
   const res = await dialog.showOpenDialog(mainWindow, {

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Send, Sparkles, Terminal, Bot, User, Wrench, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, Sparkles, Bot, User, Wrench, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ChatMessage } from '../types';
 
@@ -9,20 +9,36 @@ export const Chat: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: '¡Hola! Soy el asistente de Engram Studio. Tengo acceso completo a tu almacén de conocimiento (1,682 notas), tus proyectos locales y todas las herramientas MCP (OpenSpec, RAG, empaquetador de contexto). ¿En qué te ayudo hoy?',
-      timestamp: '12:00 PM'
+      content: '¡Hola! Soy tu asistente en Engram Studio. Estoy conectado al servidor MCP de DevBrain y a tus 1,682 notas de Obsidian. Puedes preguntarme sobre tus proyectos (Narval, AliaLog, Chambita) o consultar cualquier patrón de arquitectura.',
+      timestamp: 'Ahora'
     }
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [apiKeys, setApiKeys] = useState<{ anthropicKey?: string; openaiKey?: string; geminiKey?: string }>({});
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  useEffect(() => {
+    if ((window as any).devbrainApi) {
+      (window as any).devbrainApi.getSettings().then((s: any) => {
+        if (s) {
+          setApiKeys({
+            anthropicKey: s.anthropicKey,
+            openaiKey: s.openaiKey,
+            geminiKey: s.geminiKey
+          });
+        }
+      });
+    }
+  }, []);
 
+  const handleSend = async () => {
+    if (!input.trim() || isTyping) return;
+
+    const userText = input;
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: input,
+      content: userText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
@@ -30,25 +46,49 @@ export const Chat: React.FC = () => {
     setInput('');
     setIsTyping(true);
 
-    // Simulate MCP Tool invocation response
-    setTimeout(() => {
-      const assistantMsg: ChatMessage = {
+    try {
+      if ((window as any).devbrainApi) {
+        const apiKey = selectedProvider === 'claude' 
+          ? apiKeys.anthropicKey 
+          : (selectedProvider === 'openai' ? apiKeys.openaiKey : apiKeys.geminiKey);
+
+        const res = await (window as any).devbrainApi.chat({
+          provider: selectedProvider,
+          apiKey: apiKey || '',
+          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content }))
+        });
+
+        const assistantMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: res.content,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          toolInvocations: res.toolInvocations
+        };
+        setMessages(prev => [...prev, assistantMsg]);
+      } else {
+        // Fallback simulation if running in plain browser
+        setTimeout(() => {
+          const mockMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: `[Simulación web]: Consulta procesada sobre "${userText}".`,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setMessages(prev => [...prev, mockMsg]);
+        }, 800);
+      }
+    } catch (err: any) {
+      const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Consulté la base de conocimiento y el contexto técnico usando las herramientas MCP de DevBrain. Para resolver tu consulta sobre "${userMsg.content}", te recomiendo seguir las directivas de Clean Architecture y la especificación BDD definida en OpenSpec.`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        toolInvocations: [
-          {
-            toolName: 'search_knowledge',
-            args: { query: userMsg.content },
-            result: 'Coincidencias encontradas en [[Clean Architecture Core Domain]] y [[CQRS Pattern]]',
-            status: 'done'
-          }
-        ]
+        content: `Error al conectar con la API: ${err.message}. Asegúrate de haber configurado tu clave API en la pestaña de Configuración.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      setMessages(prev => [...prev, assistantMsg]);
+      setMessages(prev => [...prev, errorMsg]);
+    } finally {
       setIsTyping(false);
-    }, 1200);
+    }
   };
 
   return (
@@ -71,18 +111,18 @@ export const Chat: React.FC = () => {
                     ? 'bg-primary text-white rounded-tr-none' 
                     : 'bg-surface border border-border text-gray-200 rounded-tl-none leading-relaxed'
                 }`}>
-                  {m.content}
+                  <div className="whitespace-pre-wrap">{m.content}</div>
                 </div>
 
-                {/* MCP Tool Invocation Badge */}
+                {/* MCP Tool Invocation Badges */}
                 {m.toolInvocations && m.toolInvocations.map((tool, idx) => (
                   <div key={idx} className="p-2.5 rounded-lg bg-surface-light border border-border flex items-center justify-between gap-3 text-[11px]">
                     <div className="flex items-center gap-2 text-primary-light font-mono">
                       <Wrench className="w-3.5 h-3.5" />
-                      <span>mcp_tool: {tool.toolName}</span>
+                      <span>mcp: {tool.toolName}</span>
                     </div>
                     <span className="flex items-center gap-1 text-accent-green font-medium">
-                      <CheckCircle2 className="w-3 h-3" /> Completado
+                      <CheckCircle2 className="w-3 h-3" /> Ejecutado en el Vault
                     </span>
                   </div>
                 ))}
@@ -102,7 +142,7 @@ export const Chat: React.FC = () => {
             </div>
             <div className="p-3 rounded-2xl bg-surface border border-border text-xs text-gray-400 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 animate-spin text-accent-purple" />
-              Engram está ejecutando herramientas MCP...
+              Engram Studio está ejecutando herramientas y consultando el modelo...
             </div>
           </div>
         )}
@@ -116,12 +156,12 @@ export const Chat: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={lang === 'es' ? 'Pregunta sobre tus proyectos, patrones o pide redactar una spec...' : 'Ask about your projects, architecture patterns or generate specs...'}
+            placeholder={lang === 'es' ? 'Pregunta sobre Narval, Chambita, patrones de arquitectura...' : 'Ask about Narval, Chambita, architecture patterns...'}
             className="flex-1 bg-transparent px-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:outline-none"
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim()}
+            disabled={!input.trim() || isTyping}
             className="p-2.5 rounded-lg bg-primary hover:bg-primary-dark disabled:opacity-40 disabled:hover:bg-primary text-white transition-all shadow-md"
           >
             <Send className="w-3.5 h-3.5" />
