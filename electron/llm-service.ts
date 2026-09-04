@@ -268,7 +268,7 @@ export class LlmService {
       };
     }
 
-    const model = payload.model || 'gemini-3.1-pro-preview';
+    const model = payload.model || 'gemini-3.8-flash';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     const lastMessage = payload.messages[payload.messages.length - 1]?.content || '';
 

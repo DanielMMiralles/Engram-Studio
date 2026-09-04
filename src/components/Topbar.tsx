@@ -62,10 +62,14 @@ export const Topbar: React.FC = () => {
               <option value="openai:o3-mini" className="bg-surface text-gray-200">OpenAI o3-mini</option>
             </optgroup>
 
-            <optgroup label="Google (Gemini Frontier)">
-              <option value="gemini:gemini-3.1-pro-preview" className="bg-surface text-gray-200">Gemini 3.1 Pro Preview (Ultra)</option>
-              <option value="gemini:gemini-3-flash" className="bg-surface text-gray-200">Gemini 3 Flash</option>
-              <option value="gemini:gemini-2.5-pro" className="bg-surface text-gray-200">Gemini 2.5 Pro</option>
+            <optgroup label="Google (Gemini 3.5 - 3.8 Frontier)">
+              <option value="gemini:gemini-3.8-flash" className="bg-surface text-gray-200">Gemini 3.8 Flash (Latest Agentic Flagship)</option>
+              <option value="gemini:gemini-3.8-flash-cyber" className="bg-surface text-gray-200">Gemini 3.8 Flash Cyber (Security & Code)</option>
+              <option value="gemini:gemini-3.7-flash" className="bg-surface text-gray-200">Gemini 3.7 Flash (Coding Milestone)</option>
+              <option value="gemini:gemini-3.6-flash" className="bg-surface text-gray-200">Gemini 3.6 Flash (Software Engineering)</option>
+              <option value="gemini:gemini-3.5-pro" className="bg-surface text-gray-200">Gemini 3.5 Pro (Deep Reasoning)</option>
+              <option value="gemini:gemini-3.5-flash" className="bg-surface text-gray-200">Gemini 3.5 Flash (Agentic Base)</option>
+              <option value="gemini:gemini-3.1-pro-preview" className="bg-surface text-gray-200">Gemini 3.1 Pro Preview</option>
             </optgroup>
 
             <optgroup label="Modelos Chinos (Frontier Trillion MoE)">

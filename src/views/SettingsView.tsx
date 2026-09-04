@@ -135,7 +135,7 @@ export const SettingsView: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Google Gemini (Gemini 3.1 Pro / 3 Flash / 2.5 Pro)</label>
+            <label className="block text-xs text-gray-400 mb-1">Google Gemini (Gemini 3.8 Flash / 3.7 / 3.6 / 3.5 Pro / 3.1 Pro)</label>
             <input
               type="password"
               value={geminiKey}
