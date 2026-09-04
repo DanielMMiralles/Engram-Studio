@@ -8,8 +8,6 @@ let mainWindow: BrowserWindow | null = null;
 const mcpService = new McpService();
 const llmService = new LlmService(mcpService);
 
-const DEFAULT_VAULT = process.env.VAULT_DIR || 'C:\\Users\\damm1\\OneDrive\\Documentos\\Obsidian Vault';
-
 const SETTINGS_FILE = path.join(app.getPath('userData'), 'engram-settings.json');
 
 function getSettings() {
@@ -19,7 +17,7 @@ function getSettings() {
     } catch (e) {}
   }
   return {
-    vaultPath: DEFAULT_VAULT,
+    vaultPath: '',
     anthropicKey: '',
     openaiKey: '',
     geminiKey: '',
@@ -62,7 +60,6 @@ function createWindow() {
 app.whenReady().then(async () => {
   createWindow();
 
-  // Automatically spin up MCP server in background
   try {
     await mcpService.start();
     console.log('[Engram Studio] MCP server initialized and ready');
@@ -82,12 +79,12 @@ app.on('window-all-closed', () => {
 
 // IPC: Scan Vault
 ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
-  const vaultPath = customVaultPath || getSettings().vaultPath || DEFAULT_VAULT;
+  const vaultPath = customVaultPath || getSettings().vaultPath;
   const nodes: any[] = [];
   const links: any[] = [];
   const nodeSet = new Set<string>();
 
-  if (!fs.existsSync(vaultPath)) {
+  if (!vaultPath || !fs.existsSync(vaultPath)) {
     return { nodes: [], links: [] };
   }
 
@@ -129,7 +126,7 @@ ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
     scanDir(kbDir, 'conocimiento');
   }
 
-  // Add Flagship Projects as Hubs
+  // Scan user projects in 02-PROYECTOS
   const projsDir = path.join(vaultPath, '02-PROYECTOS');
   if (fs.existsSync(projsDir)) {
     const entries = fs.readdirSync(projsDir, { withFileTypes: true });

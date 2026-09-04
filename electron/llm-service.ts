@@ -33,7 +33,7 @@ export class LlmService {
     }
   }
 
-  // Anthropic Claude execution loop with tool_use handling
+  // Anthropic Claude execution loop with tool_use handling (Claude 3.7 Sonnet)
   private async executeClaude(
     payload: ChatPayload, 
     tools: McpToolDefinition[], 
@@ -47,6 +47,7 @@ export class LlmService {
       };
     }
 
+    // Default to latest bleeding-edge Claude 3.7 Sonnet
     const model = payload.model || 'claude-3-7-sonnet-20250219';
     const anthropicTools = tools.map(t => ({
       name: t.name,
@@ -59,7 +60,6 @@ export class LlmService {
       content: m.content
     }));
 
-    // Tool calling loop (up to 4 steps)
     for (let step = 0; step < 4; step++) {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -71,7 +71,7 @@ export class LlmService {
         body: JSON.stringify({
           model,
           max_tokens: 2048,
-          system: 'Eres el copiloto inteligente de Engram Studio. Tienes acceso directo al almacén de Obsidian (1,682 notas técnicas) y a las herramientas MCP de DevBrain. Utiliza las herramientas siempre que necesites consultar arquitectura, buscar notas o empaquetar contexto.',
+          system: 'Eres el copiloto inteligente de Engram Studio. Tienes acceso a herramientas MCP para consultar notas técnicas, arquitectura y proyectos del usuario. Invoca las herramientas disponibles cuando sea necesario.',
           messages: currentMessages,
           tools: anthropicTools
         })
@@ -83,18 +83,14 @@ export class LlmService {
       }
 
       const data: any = await res.json();
-      
-      // Check if tool_use was requested
       const toolUseBlocks = data.content?.filter((b: any) => b.type === 'tool_use') || [];
       const textBlocks = data.content?.filter((b: any) => b.type === 'text') || [];
 
       if (toolUseBlocks.length === 0) {
-        // Final text answer
         const finalText = textBlocks.map((b: any) => b.text).join('\n');
         return { content: finalText, toolInvocations };
       }
 
-      // Execute requested tools
       currentMessages.push({ role: 'assistant', content: data.content });
       const toolResultContents: any[] = [];
 
@@ -132,13 +128,10 @@ export class LlmService {
       currentMessages.push({ role: 'user', content: toolResultContents });
     }
 
-    return {
-      content: 'Límite de iteraciones de herramientas alcanzado.',
-      toolInvocations
-    };
+    return { content: 'Límite de iteraciones alcanzado.', toolInvocations };
   }
 
-  // OpenAI execution loop
+  // OpenAI execution loop (GPT-4.5 / o3-mini / GPT-4o)
   private async executeOpenAI(
     payload: ChatPayload, 
     tools: McpToolDefinition[], 
@@ -152,7 +145,8 @@ export class LlmService {
       };
     }
 
-    const model = payload.model || 'gpt-4o';
+    // Default to latest bleeding-edge OpenAI model
+    const model = payload.model || 'gpt-4.5-preview';
     const openaiTools = tools.map(t => ({
       type: 'function',
       function: {
@@ -165,7 +159,7 @@ export class LlmService {
     let currentMessages: any[] = [
       {
         role: 'system',
-        content: 'Eres el copiloto inteligente de Engram Studio con acceso a 1,682 notas de arquitectura y proyectos.'
+        content: 'Eres el copiloto inteligente de Engram Studio con acceso a herramientas MCP para gestión de proyectos y conocimiento.'
       },
       ...payload.messages
     ];
@@ -237,7 +231,7 @@ export class LlmService {
     return { content: 'Límite de herramientas alcanzado.', toolInvocations };
   }
 
-  // Google Gemini execution loop
+  // Google Gemini execution loop (Gemini 3.1 Pro / Gemini 2.5 Pro)
   private async executeGemini(
     payload: ChatPayload, 
     tools: McpToolDefinition[], 
@@ -251,7 +245,8 @@ export class LlmService {
       };
     }
 
-    const model = payload.model || 'gemini-2.0-flash';
+    // Default to Gemini 3.1 Pro Preview (o 2.5 Pro)
+    const model = payload.model || 'gemini-3.1-pro-preview';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const lastMessage = payload.messages[payload.messages.length - 1]?.content || '';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Globe, ChevronDown, Sparkles, RefreshCw } from 'lucide-react';
+import { Search, Globe, Sparkles, RefreshCw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 
 export const Topbar: React.FC = () => {
@@ -19,7 +19,7 @@ export const Topbar: React.FC = () => {
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={lang === 'es' ? 'Buscar neuronas, conceptos, patrones (Ctrl + K)...' : 'Search neurons, patterns, notes (Ctrl + K)...'}
+          placeholder={lang === 'es' ? 'Buscar neuronas, conceptos, notas...' : 'Search neurons, notes...'}
           className="w-full bg-background border border-border rounded-lg pl-9 pr-4 py-1.5 text-xs text-gray-200 placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
         />
       </div>
@@ -36,18 +36,24 @@ export const Topbar: React.FC = () => {
           <RefreshCw className={`w-3.5 h-3.5 ${isLoadingGraph ? 'animate-spin text-primary' : ''}`} />
         </button>
 
-        {/* LLM Provider Selector */}
+        {/* LLM Model Selector with latest bleeding-edge models */}
         <div className="flex items-center gap-2 bg-surface-light border border-border rounded-lg px-2.5 py-1 text-xs">
           <Sparkles className="w-3.5 h-3.5 text-accent-purple" />
-          <span className="text-gray-400 text-[11px]">Provider:</span>
+          <span className="text-gray-400 text-[11px]">Modelo:</span>
           <select
             value={selectedProvider}
             onChange={(e: any) => setSelectedProvider(e.target.value)}
             className="bg-transparent text-gray-200 font-medium focus:outline-none cursor-pointer text-xs"
           >
-            <option value="claude" className="bg-surface text-gray-200">Claude 3.7 Sonnet (Hybrid Reasoning)</option>
-            <option value="openai" className="bg-surface text-gray-200">OpenAI GPT-4o / o3-mini</option>
-            <option value="gemini" className="bg-surface text-gray-200">Google Gemini 2.0 Flash</option>
+            <optgroup label="Anthropic">
+              <option value="claude" className="bg-surface text-gray-200">Claude 3.7 Sonnet (Hybrid Reasoning)</option>
+            </optgroup>
+            <optgroup label="Google">
+              <option value="gemini" className="bg-surface text-gray-200">Gemini 3.1 Pro (Ultra)</option>
+            </optgroup>
+            <optgroup label="OpenAI">
+              <option value="openai" className="bg-surface text-gray-200">GPT-4.5 Preview / o3-mini</option>
+            </optgroup>
           </select>
         </div>
 

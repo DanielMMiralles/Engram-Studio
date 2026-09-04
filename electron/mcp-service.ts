@@ -20,11 +20,13 @@ export class McpService {
   public async start(): Promise<boolean> {
     if (this.process) return true;
 
+    // Check sibling repository or environment variable
     const candidates = [
+      process.env.DEVBRAIN_MCP_PATH || '',
+      path.join(__dirname, '../../devbrain-mcp/src/devbrain_mcp.py'),
       path.join(process.cwd(), '../devbrain-mcp/src/devbrain_mcp.py'),
-      'C:\\Users\\damm1\\.gemini\\antigravity\\scratch\\devbrain-mcp\\src\\devbrain_mcp.py',
-      'C:\\Users\\damm1\\OneDrive\\Documentos\\Obsidian Vault\\06-SISTEMA\\mcp\\devbrain_mcp.py'
-    ];
+      path.join(process.cwd(), 'devbrain-mcp/src/devbrain_mcp.py')
+    ].filter(Boolean);
 
     let scriptPath = '';
     for (const c of candidates) {
@@ -35,12 +37,12 @@ export class McpService {
     }
 
     if (!scriptPath) {
-      console.error('[MCP] Could not find devbrain_mcp.py');
+      console.warn('[MCP] Server script not found in standard relative paths. Ensure devbrain-mcp is available.');
       return false;
     }
 
-    console.log(`[MCP] Spawning DevBrain MCP server from: ${scriptPath}`);
-    this.process = spawn('py', ['-3.12', scriptPath], {
+    console.log(`[MCP] Spawning MCP server from: ${scriptPath}`);
+    this.process = spawn('python', ['-u', scriptPath], {
       env: {
         ...process.env,
         PYTHONUNBUFFERED: '1',

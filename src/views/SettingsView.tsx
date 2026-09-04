@@ -3,7 +3,7 @@ import { Settings, Key, HardDrive, Server, Save, CheckCircle2 } from 'lucide-rea
 import { useApp } from '../context/AppContext';
 
 export const SettingsView: React.FC = () => {
-  const { vaultPath, setVaultPath, lang } = useApp();
+  const { vaultPath, setVaultPath, loadVaultData } = useApp();
   const [anthropicKey, setAnthropicKey] = useState('');
   const [openaiKey, setOpenaiKey] = useState('');
   const [geminiKey, setGeminiKey] = useState('');
@@ -32,6 +32,7 @@ export const SettingsView: React.FC = () => {
       });
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 3000);
+      loadVaultData();
     }
   };
 
@@ -53,7 +54,7 @@ export const SettingsView: React.FC = () => {
             Configuración de Engram Studio
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Gestiona tus rutas de almacenamiento, claves de API y servidor MCP.
+            Gestiona tus rutas personales, claves de API (BYOK) y servidor MCP.
           </p>
         </div>
         <button
@@ -69,18 +70,22 @@ export const SettingsView: React.FC = () => {
       <div className="p-5 rounded-xl bg-surface border border-border space-y-3">
         <h2 className="font-bold text-sm text-white flex items-center gap-2">
           <HardDrive className="w-4 h-4 text-primary" />
-          Ruta del Almacén de Obsidian (Vault)
+          Ruta de tu Almacén de Obsidian (Vault Personal)
         </h2>
+        <p className="text-xs text-gray-400">
+          Selecciona la carpeta local donde guardas tus notas de Obsidian para indexar tu grafo de conocimiento.
+        </p>
         <div className="flex items-center gap-2">
           <input
             type="text"
             value={vaultPath}
             onChange={(e) => setVaultPath(e.target.value)}
+            placeholder="Selecciona o escribe la ruta a tu carpeta de Obsidian..."
             className="flex-1 bg-background border border-border rounded-lg px-3 py-2 text-xs text-gray-200 font-mono focus:outline-none focus:border-primary"
           />
           <button
             onClick={handleBrowseVault}
-            className="px-3 py-2 bg-surface-light border border-border rounded-lg text-xs text-gray-300 hover:text-white transition-all"
+            className="px-3 py-2 bg-surface-light border border-border rounded-lg text-xs text-gray-300 hover:text-white transition-all shrink-0"
           >
             Examinar...
           </button>
@@ -93,9 +98,12 @@ export const SettingsView: React.FC = () => {
           <Key className="w-4 h-4 text-accent-purple" />
           Claves de API de Proveedores (BYOK)
         </h2>
+        <p className="text-xs text-gray-400">
+          Tus claves se guardan localmente en tu ordenador y nunca se comparten con nadie.
+        </p>
         <div className="space-y-3">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Anthropic (Claude API Key)</label>
+            <label className="block text-xs text-gray-400 mb-1">Anthropic API Key (Claude 3.7 Sonnet)</label>
             <input
               type="password"
               value={anthropicKey}
@@ -105,7 +113,7 @@ export const SettingsView: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">OpenAI API Key</label>
+            <label className="block text-xs text-gray-400 mb-1">OpenAI API Key (GPT-4.5 / o3-mini)</label>
             <input
               type="password"
               value={openaiKey}
@@ -115,7 +123,7 @@ export const SettingsView: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Google Gemini API Key</label>
+            <label className="block text-xs text-gray-400 mb-1">Google Gemini API Key (Gemini 3.1 Pro)</label>
             <input
               type="password"
               value={geminiKey}

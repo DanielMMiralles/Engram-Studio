@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Send, Sparkles, Bot, User, Wrench, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Send, Sparkles, Bot, User, Wrench, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { ChatMessage } from '../types';
 
@@ -9,7 +9,7 @@ export const Chat: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: '¡Hola! Soy tu asistente en Engram Studio. Estoy conectado al servidor MCP de DevBrain y a tus 1,682 notas de Obsidian. Puedes preguntarme sobre tus proyectos (Narval, AliaLog, Chambita) o consultar cualquier patrón de arquitectura.',
+      content: '¡Hola! Soy tu asistente en Engram Studio. Estoy listo para ayudarte a explorar tus notas de conocimiento, consultar arquitectura de software y ejecutar herramientas MCP sobre tu propio almacén. ¿Qué deseas consultar hoy?',
       timestamp: 'Ahora'
     }
   ]);
@@ -67,7 +67,6 @@ export const Chat: React.FC = () => {
         };
         setMessages(prev => [...prev, assistantMsg]);
       } else {
-        // Fallback simulation if running in plain browser
         setTimeout(() => {
           const mockMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
@@ -114,7 +113,6 @@ export const Chat: React.FC = () => {
                   <div className="whitespace-pre-wrap">{m.content}</div>
                 </div>
 
-                {/* MCP Tool Invocation Badges */}
                 {m.toolInvocations && m.toolInvocations.map((tool, idx) => (
                   <div key={idx} className="p-2.5 rounded-lg bg-surface-light border border-border flex items-center justify-between gap-3 text-[11px]">
                     <div className="flex items-center gap-2 text-primary-light font-mono">
@@ -122,7 +120,7 @@ export const Chat: React.FC = () => {
                       <span>mcp: {tool.toolName}</span>
                     </div>
                     <span className="flex items-center gap-1 text-accent-green font-medium">
-                      <CheckCircle2 className="w-3 h-3" /> Ejecutado en el Vault
+                      <CheckCircle2 className="w-3 h-3" /> Ejecutado en tu Vault
                     </span>
                   </div>
                 ))}
@@ -142,7 +140,7 @@ export const Chat: React.FC = () => {
             </div>
             <div className="p-3 rounded-2xl bg-surface border border-border text-xs text-gray-400 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 animate-spin text-accent-purple" />
-              Engram Studio está ejecutando herramientas y consultando el modelo...
+              Consultando modelo y ejecutando herramientas MCP...
             </div>
           </div>
         )}
@@ -156,7 +154,7 @@ export const Chat: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={lang === 'es' ? 'Pregunta sobre Narval, Chambita, patrones de arquitectura...' : 'Ask about Narval, Chambita, architecture patterns...'}
+            placeholder={lang === 'es' ? 'Pregunta sobre tus proyectos o conceptos de arquitectura...' : 'Ask about your projects or architecture concepts...'}
             className="flex-1 bg-transparent px-3 py-2 text-xs text-gray-200 placeholder-gray-500 focus:outline-none"
           />
           <button

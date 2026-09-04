@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { GraphData, GraphNode, NoteItem } from '../types';
+import { GraphData, GraphNode } from '../types';
 
 interface AppContextType {
   activeTab: string;
@@ -27,7 +27,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [activeTab, setActiveTab] = useState('graph');
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedNoteContent, setSelectedNoteContent] = useState('');
-  const [vaultPath, setVaultPath] = useState('C:\\Users\\damm1\\OneDrive\\Documentos\\Obsidian Vault');
+  const [vaultPath, setVaultPath] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<'claude' | 'openai' | 'gemini'>('claude');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoadingGraph, setIsLoadingGraph] = useState(false);
@@ -38,60 +38,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsLoadingGraph(true);
     try {
       if ((window as any).devbrainApi) {
-        const data = await (window as any).devbrainApi.scanVault(vaultPath);
-        if (data && data.nodes && data.nodes.length > 0) {
-          setGraphData(data);
-          setIsLoadingGraph(false);
-          return;
+        const settings = await (window as any).devbrainApi.getSettings();
+        const currentPath = settings?.vaultPath || vaultPath;
+        if (currentPath) {
+          setVaultPath(currentPath);
+          const data = await (window as any).devbrainApi.scanVault(currentPath);
+          if (data && data.nodes && data.nodes.length > 0) {
+            setGraphData(data);
+            setIsLoadingGraph(false);
+            return;
+          }
         }
       }
     } catch (e) {
-      console.warn('Electron API unavailable, loading default neural nodes:', e);
+      console.warn('Electron API scanner error:', e);
     }
 
-    // High quality sample neural graph fallback (represents real vault categories)
-    const sampleNodes: GraphNode[] = [
-      { id: 'Narval-SGN', label: 'Narval - SGN', category: 'proyectos', val: 10, color: '#f0883e' },
-      { id: 'AliaLog-System', label: 'AliaLog System', category: 'proyectos', val: 9, color: '#f0883e' },
-      { id: 'Chambita-Ecosystem', label: 'Chambita Ecosystem', category: 'proyectos', val: 9, color: '#f0883e' },
-      { id: 'Mayan-EDMS', label: 'Mayan EDMS', category: 'proyectos', val: 7, color: '#f0883e' },
-      { id: 'Django', label: 'Django 6.0', category: 'backend', val: 7, color: '#2ea043' },
-      { id: 'DRF', label: 'Django REST Framework', category: 'backend', val: 6, color: '#2ea043' },
-      { id: 'PostgreSQL', label: 'PostgreSQL Database', category: 'backend', val: 8, color: '#a371f7' },
-      { id: 'Docker', label: 'Docker Compose', category: 'infra', val: 8, color: '#39c5bb' },
-      { id: 'CQRS', label: 'CQRS Pattern', category: 'patrones', val: 6, color: '#58a6ff' },
-      { id: 'Event Sourcing', label: 'Event Sourcing', category: 'patrones', val: 6, color: '#58a6ff' },
-      { id: 'NestJS', label: 'NestJS Clean Arch', category: 'backend', val: 7, color: '#2ea043' },
-      { id: 'Clean Architecture', label: 'Clean Architecture', category: 'patrones', val: 8, color: '#58a6ff' },
+    // Generic educational architecture sample nodes (zero personal references)
+    const genericNodes: GraphNode[] = [
+      { id: 'Clean Architecture', label: 'Clean Architecture', category: 'patrones', val: 9, color: '#58a6ff' },
       { id: 'Domain Driven Design', label: 'Domain-Driven Design (DDD)', category: 'patrones', val: 9, color: '#58a6ff' },
-      { id: 'Engram Memory', label: 'Engram Memory Engine', category: 'aprendizajes', val: 6, color: '#a371f7' },
-      { id: 'OpenSpec SDD', label: 'OpenSpec (SDD Standard)', category: 'patrones', val: 7, color: '#58a6ff' },
-      { id: 'React Native', label: 'React Native & Expo', category: 'backend', val: 6, color: '#2ea043' },
-      { id: 'LangGraph', label: 'LangGraph Multi-Agent', category: 'backend', val: 7, color: '#2ea043' },
-      { id: 'Context7', label: 'Context7 Live Docs', category: 'infra', val: 5, color: '#39c5bb' },
-      { id: 'BM25 RAG', label: 'BM25 Retrieval Engine', category: 'patrones', val: 5, color: '#58a6ff' },
+      { id: 'CQRS', label: 'CQRS Pattern', category: 'patrones', val: 7, color: '#58a6ff' },
+      { id: 'Event Sourcing', label: 'Event Sourcing', category: 'patrones', val: 7, color: '#58a6ff' },
+      { id: 'Microservicios', label: 'Arquitectura de Microservicios', category: 'patrones', val: 8, color: '#58a6ff' },
+      { id: 'REST & GraphQL', label: 'APIs RESTful y GraphQL', category: 'backend', val: 7, color: '#2ea043' },
+      { id: 'PostgreSQL & SQL', label: 'Modelado Relacional (SQL)', category: 'backend', val: 8, color: '#a371f7' },
+      { id: 'Docker & Containers', label: 'Contenedores y Docker Compose', category: 'infra', val: 8, color: '#39c5bb' },
+      { id: 'CI/CD Pipelines', label: 'Pipelines Automatizados CI/CD', category: 'infra', val: 6, color: '#39c5bb' },
+      { id: 'TDD & BDD', label: 'Desarrollo Guiado por Pruebas', category: 'patrones', val: 7, color: '#58a6ff' },
+      { id: 'OpenSpec SDD', label: 'Spec-Driven Development', category: 'patrones', val: 8, color: '#58a6ff' },
+      { id: 'Engram Memory', label: 'Sistema de Memoria Persistente', category: 'aprendizajes', val: 7, color: '#a371f7' },
     ];
 
-    const sampleLinks = [
-      { source: 'Narval-SGN', target: 'Django' },
-      { source: 'Narval-SGN', target: 'DRF' },
-      { source: 'Narval-SGN', target: 'PostgreSQL' },
-      { source: 'Narval-SGN', target: 'Docker' },
-      { source: 'AliaLog-System', target: 'NestJS' },
-      { source: 'AliaLog-System', target: 'Clean Architecture' },
-      { source: 'AliaLog-System', target: 'PostgreSQL' },
-      { source: 'Chambita-Ecosystem', target: 'NestJS' },
-      { source: 'Chambita-Ecosystem', target: 'React Native' },
-      { source: 'Chambita-Ecosystem', target: 'PostgreSQL' },
+    const genericLinks = [
       { source: 'Clean Architecture', target: 'Domain Driven Design' },
       { source: 'Domain Driven Design', target: 'CQRS' },
       { source: 'CQRS', target: 'Event Sourcing' },
+      { source: 'Clean Architecture', target: 'TDD & BDD' },
       { source: 'OpenSpec SDD', target: 'Clean Architecture' },
-      { source: 'Engram Memory', target: 'BM25 RAG' },
-      { source: 'LangGraph', target: 'Context7' },
+      { source: 'Microservicios', target: 'Docker & Containers' },
+      { source: 'Microservicios', target: 'REST & GraphQL' },
+      { source: 'REST & GraphQL', target: 'PostgreSQL & SQL' },
+      { source: 'Docker & Containers', target: 'CI/CD Pipelines' },
+      { source: 'Engram Memory', target: 'Clean Architecture' },
     ];
 
-    setGraphData({ nodes: sampleNodes, links: sampleLinks });
+    setGraphData({ nodes: genericNodes, links: genericLinks });
     setIsLoadingGraph(false);
   };
 
