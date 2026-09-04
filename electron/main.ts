@@ -3,10 +3,12 @@ import path from 'path';
 import fs from 'fs';
 import { McpService } from './mcp-service';
 import { LlmService } from './llm-service';
+import { VaultWatcher } from './vault-watcher';
 
 let mainWindow: BrowserWindow | null = null;
 const mcpService = new McpService();
 const llmService = new LlmService(mcpService);
+const vaultWatcher = new VaultWatcher(() => mainWindow);
 
 const SETTINGS_FILE = path.join(app.getPath('userData'), 'engram-settings.json');
 
@@ -21,12 +23,19 @@ function getSettings() {
     anthropicKey: '',
     openaiKey: '',
     geminiKey: '',
+    deepseekKey: '',
+    qwenKey: '',
+    kimiKey: '',
+    glmKey: '',
     defaultProvider: 'claude'
   };
 }
 
 function saveSettings(settings: any) {
   fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf-8');
+  if (settings.vaultPath) {
+    vaultWatcher.start(settings.vaultPath);
+  }
 }
 
 function createWindow() {
@@ -60,11 +69,18 @@ function createWindow() {
 app.whenReady().then(async () => {
   createWindow();
 
+  // Start background MCP server
   try {
     await mcpService.start();
     console.log('[Engram Studio] MCP server initialized and ready');
   } catch (e) {
     console.warn('[Engram Studio] MCP auto-start deferred:', e);
+  }
+
+  // Start live vault watcher if path configured
+  const settings = getSettings();
+  if (settings.vaultPath) {
+    vaultWatcher.start(settings.vaultPath);
   }
 
   app.on('activate', () => {
@@ -74,6 +90,7 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   mcpService.stop();
+  vaultWatcher.stop();
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -87,6 +104,9 @@ ipcMain.handle('vault:scan', async (_, customVaultPath?: string) => {
   if (!vaultPath || !fs.existsSync(vaultPath)) {
     return { nodes: [], links: [] };
   }
+
+  // Restart watcher on scanned path
+  vaultWatcher.start(vaultPath);
 
   const kbDir = path.join(vaultPath, '03-CONOCIMIENTO');
   if (fs.existsSync(kbDir)) {

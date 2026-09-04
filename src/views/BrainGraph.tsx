@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ZoomIn, ZoomOut, Maximize2, Filter, Layers, Zap, Info } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Sparkles, X } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { GraphNode } from '../types';
 
@@ -7,25 +7,24 @@ export const BrainGraph: React.FC = () => {
   const { graphData, setSelectedNode, selectedNode, searchQuery, lang } = useApp();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   
-  // Transform states
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
+  const [latestNeuronNotice, setLatestNeuronNotice] = useState<string | null>(null);
 
-  // Physics simulation nodes
   const simNodesRef = useRef<any[]>([]);
+  const simLinksRef = useRef<any[]>([]);
 
   useEffect(() => {
-    // Initialize nodes positions in a cosmic circle layout
     const width = 1000;
     const height = 700;
     const center = { x: width / 2, y: height / 2 };
     
     simNodesRef.current = graphData.nodes.map((node, i) => {
-      const angle = (i / graphData.nodes.length) * 2 * Math.PI;
+      const angle = (i / Math.max(graphData.nodes.length, 1)) * 2 * Math.PI;
       const radius = 180 + (i % 3) * 60;
       return {
         ...node,
@@ -35,7 +34,37 @@ export const BrainGraph: React.FC = () => {
         vy: 0
       };
     });
+    simLinksRef.current = [...graphData.links];
   }, [graphData]);
+
+  // Listen for real-time new neurons added by VaultWatcher
+  useEffect(() => {
+    if ((window as any).devbrainApi?.onNodeAdded) {
+      const unsubscribe = (window as any).devbrainApi.onNodeAdded((data: { node: any; links: any[] }) => {
+        const center = { x: 500, y: 350 };
+        const newNode = {
+          ...data.node,
+          x: center.x + (Math.random() - 0.5) * 200,
+          y: center.y + (Math.random() - 0.5) * 200,
+          vx: 0,
+          vy: 0,
+          isNew: true,
+          birthTime: Date.now()
+        };
+
+        // Add to simulation
+        simNodesRef.current = [...simNodesRef.current.filter(n => n.id !== newNode.id), newNode];
+        simLinksRef.current = [...simLinksRef.current, ...data.links];
+
+        setLatestNeuronNotice(`✨ Nueva neurona aprendida: "${newNode.label}"`);
+        setTimeout(() => setLatestNeuronNotice(null), 5000);
+      });
+
+      return () => {
+        if (typeof unsubscribe === 'function') unsubscribe();
+      };
+    }
+  }, []);
 
   // Main Canvas Render Loop
   useEffect(() => {
@@ -56,7 +85,7 @@ export const BrainGraph: React.FC = () => {
       const nodeMap = new Map<string, any>(nodes.map(n => [n.id, n]));
 
       // 1. Draw Synaptic Links
-      for (const link of graphData.links) {
+      for (const link of simLinksRef.current) {
         const source = nodeMap.get(link.source);
         const target = nodeMap.get(link.target);
         if (source && target) {
@@ -70,7 +99,7 @@ export const BrainGraph: React.FC = () => {
           ctx.lineWidth = isConnected ? 2 : 1;
           ctx.stroke();
 
-          // Draw small moving synaptic signal particle if selected
+          // Animated signal particle
           if (isConnected) {
             const t = (Date.now() % 2000) / 2000;
             const px = source.x + (target.x - source.x) * t;
@@ -87,6 +116,7 @@ export const BrainGraph: React.FC = () => {
       }
 
       // 2. Draw Neural Nodes
+      const now = Date.now();
       for (const node of nodes) {
         const isMatch = searchQuery 
           ? node.label.toLowerCase().includes(searchQuery.toLowerCase()) 
@@ -94,8 +124,19 @@ export const BrainGraph: React.FC = () => {
         const isSelected = selectedNode?.id === node.id;
         const isHovered = hoveredNode?.id === node.id;
 
-        const baseRadius = node.val * 2 + 6;
+        const baseRadius = (node.val || 5) * 2 + 6;
         const radius = isSelected ? baseRadius * 1.3 : baseRadius;
+
+        // Shockwave expansion animation for newly born neurons (<4 seconds old)
+        if (node.isNew && (now - node.birthTime) < 4000) {
+          const ageRatio = (now - node.birthTime) / 4000;
+          const waveRadius = radius + ageRatio * 35;
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, waveRadius, 0, 2 * Math.PI);
+          ctx.strokeStyle = `rgba(46, 160, 67, ${1 - ageRatio})`;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+        }
 
         // Outer Glow
         ctx.beginPath();
@@ -136,9 +177,8 @@ export const BrainGraph: React.FC = () => {
     render();
 
     return () => cancelAnimationFrame(animId);
-  }, [graphData, pan, zoom, selectedNode, hoveredNode, searchQuery]);
+  }, [pan, zoom, selectedNode, hoveredNode, searchQuery]);
 
-  // Handle Canvas Mouse Interaction
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDragging(true);
     setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -148,7 +188,6 @@ export const BrainGraph: React.FC = () => {
     if (isDragging) {
       setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
     } else {
-      // Hit test for nodes
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
@@ -158,7 +197,7 @@ export const BrainGraph: React.FC = () => {
       const found = simNodesRef.current.find(n => {
         const dx = n.x - mouseX;
         const dy = n.y - mouseY;
-        return Math.sqrt(dx * dx + dy * dy) < (n.val * 2 + 8);
+        return Math.sqrt(dx * dx + dy * dy) < ((n.val || 5) * 2 + 8);
       });
       setHoveredNode(found || null);
     }
@@ -173,6 +212,17 @@ export const BrainGraph: React.FC = () => {
 
   return (
     <div className="relative w-full h-full bg-[#090d13] overflow-hidden flex flex-col select-none">
+      {/* Real-time New Neuron Notification Banner */}
+      {latestNeuronNotice && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 bg-accent-green/20 border border-accent-green/40 backdrop-blur px-4 py-2 rounded-xl text-xs text-accent-green font-medium flex items-center gap-2 shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <Sparkles className="w-4 h-4 animate-spin text-accent-green" />
+          <span>{latestNeuronNotice}</span>
+          <button onClick={() => setLatestNeuronNotice(null)} className="hover:text-white ml-2">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Top Floating Control Bar */}
       <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
         <div className="flex items-center gap-1 bg-surface/90 backdrop-blur border border-border p-1 rounded-xl shadow-lg">
@@ -216,29 +266,6 @@ export const BrainGraph: React.FC = () => {
           >
             <Maximize2 className="w-4 h-4" />
           </button>
-        </div>
-      </div>
-
-      {/* Bottom Left Legend */}
-      <div className="absolute bottom-6 left-6 z-10 bg-surface/90 backdrop-blur border border-border px-3.5 py-2.5 rounded-xl shadow-xl text-xs space-y-1.5">
-        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-          {lang === 'es' ? 'Leyenda Neuronal' : 'Neural Legend'}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#f0883e] shadow-[0_0_8px_#f0883e]"></span>
-          <span className="text-gray-300">Proyectos Insignia</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#58a6ff] shadow-[0_0_8px_#58a6ff]"></span>
-          <span className="text-gray-300">Patrones y Conceptos</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#2ea043] shadow-[0_0_8px_#2ea043]"></span>
-          <span className="text-gray-300">Backend & Frameworks</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#a371f7] shadow-[0_0_8px_#a371f7]"></span>
-          <span className="text-gray-300">Memoria & Decisiones</span>
         </div>
       </div>
 
