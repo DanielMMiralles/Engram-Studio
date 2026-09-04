@@ -9,7 +9,7 @@ export const Chat: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: '¡Hola! Soy el asistente de DevBrain Studio. Tengo acceso completo a tu almacén de conocimiento (1,682 notas), tus proyectos locales y todas las herramientas MCP (OpenSpec, RAG, empaquetador de contexto). ¿En qué te ayudo hoy?',
+      content: '¡Hola! Soy el asistente de Engram Studio. Tengo acceso completo a tu almacén de conocimiento (1,682 notas), tus proyectos locales y todas las herramientas MCP (OpenSpec, RAG, empaquetador de contexto). ¿En qué te ayudo hoy?',
       timestamp: '12:00 PM'
     }
   ]);
@@ -102,7 +102,7 @@ export const Chat: React.FC = () => {
             </div>
             <div className="p-3 rounded-2xl bg-surface border border-border text-xs text-gray-400 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 animate-spin text-accent-purple" />
-              DevBrain está ejecutando herramientas MCP...
+              Engram está ejecutando herramientas MCP...
             </div>
           </div>
         )}

@@ -10,7 +10,7 @@ export const SettingsView: React.FC = () => {
       <div>
         <h1 className="text-xl font-bold text-white flex items-center gap-2">
           <Settings className="w-5 h-5 text-gray-400" />
-          Configuración de DevBrain Studio
+          Configuración de Engram Studio
         </h1>
         <p className="text-xs text-gray-400 mt-1">
           Gestiona tus rutas, proveedores de IA y servidores MCP.

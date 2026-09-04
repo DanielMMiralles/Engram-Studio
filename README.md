@@ -1,6 +1,6 @@
-# 🧠 DevBrain Studio
+# 🧠 Engram Studio
 
-**DevBrain Studio** es la aplicación de escritorio moderna para visualizar, consultar y orquestar tu cerebro de conocimiento en **Obsidian** y tus proyectos de desarrollo con **Model Context Protocol (MCP)** e inteligencia artificial avanzada.
+**Engram Studio** es la aplicación de escritorio moderna para visualizar, consultar y orquestar tu cerebro de conocimiento en **Obsidian** y tus proyectos de desarrollo con **Model Context Protocol (MCP)** e inteligencia artificial avanzada.
 
 ---
 

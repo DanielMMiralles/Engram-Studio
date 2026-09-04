@@ -34,7 +34,7 @@ export const Sidebar: React.FC = () => {
           </div>
           <div>
             <h1 className="font-bold text-sm tracking-tight text-white flex items-center gap-1.5">
-              DevBrain <span className="text-primary-light font-normal text-xs px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20">Studio</span>
+              Engram <span className="text-primary-light font-normal text-xs px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20">Studio</span>
             </h1>
             <p className="text-[11px] text-gray-400">Knowledge & MCP Suite</p>
           </div>

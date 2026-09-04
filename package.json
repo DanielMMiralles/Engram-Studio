@@ -1,7 +1,7 @@
 {
-  "name": "devbrain-studio",
+  "name": "engram-studio",
   "version": "1.0.0",
-  "description": "Modern Desktop Knowledge Brain Manager with Neural Graph & MCP Integration",
+  "description": "Engram Studio \u2014 Modern Desktop Knowledge Brain Manager with Neural Graph & MCP Integration",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {

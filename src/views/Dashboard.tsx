@@ -28,7 +28,7 @@ export const Dashboard: React.FC = () => {
       <div className="relative rounded-2xl p-6 bg-gradient-to-r from-surface to-surface-light border border-border overflow-hidden">
         <div className="relative z-10 max-w-2xl space-y-2">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/20 text-primary-light text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" /> DevBrain Studio v2.0
+            <Sparkles className="w-3.5 h-3.5" /> Engram Studio v2.0
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">
             Bienvenido a tu Centro de Inteligencia y Conocimiento
